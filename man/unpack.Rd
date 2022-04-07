@@ -7,7 +7,7 @@
 unpack(outputs)
 }
 \arguments{
-\item{x}{a list of safely and quielty packaged outputs}
+\item{outputs}{a list of safely and quielty packaged outputs}
 }
 \value{
 a list of lists such that each element of the parent list contains
