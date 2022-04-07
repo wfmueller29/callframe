@@ -5,7 +5,7 @@
 #' messages, warning messages, echoed output, and what was returned from our
 #' function call.
 #'
-#' @param x a list of safely and quielty packaged outputs
+#' @param outputs a list of safely and quielty packaged outputs
 #'
 #' @return a list of lists such that each element of the parent list contains
 #' all ouput from each function call and each element of the inner list
