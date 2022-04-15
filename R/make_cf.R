@@ -1,13 +1,13 @@
 #' Make Call Frame
 #'
 #' This function will make a call frame given a list of named vectors. This
-#' function will use the purrr::cross_df function to create a dataframe of 
-#' every possible call combination determined by the named lists. 
+#' function will use the purrr::cross_df function to create a dataframe of
+#' every possible call combination determined by the named lists.
 #'
 #' @param ... a named list with vectors
 #'
-#' @details if you provide the name of a variable using the | sybmol, then 
-#' this variable will be using in the combination then split into two separate 
+#' @details if you provide the name of a variable using the | sybmol, then
+#' this variable will be using in the combination then split into two separate
 #' variables afterwards
 #'
 #' @export

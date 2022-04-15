@@ -7,7 +7,7 @@
 #' frame
 #' @param type a named character vector where the names are the names of the
 #' columns within the cf that are to be included as arguments to fun. Options 
-#' for this parameter are c("sym", "form", "chr")
+#' for this parameter are c("sym", "form", "chr", "bool", "num")
 #' @param safe_quiet a boolean that specifies if fun should be wrapped by
 #' the safely and quietly arguements in the purrr package
 #' @param pkgs an Optional argumenet where the user can explicitly tell the
@@ -67,6 +67,18 @@ coerce_cf <- function(cf_row, type) {
     cf_row[[arg]] <- as.symbol(cf_row[[arg]])
   }
 
+  # Create numeric columns
+  num_args <- names(type)[type == "num"]
+  for (arg in num_args) {
+    cf_row[[arg]] <- as.numeric(cf_row[[arg]])
+  }
+
+  # Create boolean columns
+  bool_args <- names(type)[type == "bool"]
+  for (arg in bool_args) {
+    cf_row[[arg]] <- as.logical(cf_row[[arg]])
+  }
+
   # Create object columns
   obj_args <- names(type)[type == "obj"]
   for (arg in obj_args) {
@@ -75,3 +87,4 @@ coerce_cf <- function(cf_row, type) {
 
   cf_row
 }
+
