@@ -6,7 +6,7 @@
 #' @param fun the function that we are going to apply to each row of the call
 #' frame
 #' @param type a named character vector where the names are the names of the
-#' columns within the cf that are to be included as arguments to fun. Options 
+#' columns within the cf that are to be included as arguments to fun. Options
 #' for this parameter are c("sym", "form", "chr", "bool", "num")
 #' @param safe_quiet a boolean that specifies if fun should be wrapped by
 #' the safely and quietly arguements in the purrr package
@@ -15,7 +15,12 @@
 #' may not be necessary, however if errors are occuring, this may be why.
 #' @param seed if your function requires seeding this argument must be set
 #' to true by default.
+#' @param tictoc boolean specifying if you would like to use the package
+#' 'tictoc' to time each call
+#' @param progress boolean specifying if you would liek to use the package
+#' 'progress' to provide progress bar updates
 #'
+#' @author William Mueller
 #'
 #' @export
 
@@ -24,26 +29,33 @@ pmap_cf <- function(cf,
                     type,
                     safe_quiet = TRUE,
                     pkgs = NULL,
-                    seed = TRUE) {
-  if (safe_quiet) {
-    fun <- purrr::safely(purrr::quietly(fun))
-  } else {
-    fun <- fun
-  }
+                    seed = TRUE,
+                    tictoc = TRUE,
+                    progress = TRUE) {
+  pkgs <- update_pkgs(pkgs, tictoc, progress, safe_quiet)
+
+  fun <- update_safe_quiet(fun, safe_quiet)
+
   mos <- list()
+  if (tictoc) tictoc::tic(msg = "Executing callframe")
+  if (progress) pb <- progress::progress_bar$new(total = nrow(cf))
   for (i in seq_len(nrow(cf))) {
     row <- cf[i, ]
     row <- as.list(coerce_cf(row, type = type))
     call <- as.call(c(str2lang("fun"), row))
+    exp <- create_expression(call, tictoc, progress)
     f_call <- as.call(c(
       str2lang("future::future"),
-      list(call),
+      list(exp),
       list(packages = pkgs),
       list(seed = seed)
     ))
     mos[[i]] <- eval(f_call)
   }
   mos <- lapply(mos, FUN = future::value)
+  if (tictoc) tictoc::toc()
+
+  mos
 }
 
 coerce_cf <- function(cf_row, type) {
@@ -88,3 +100,55 @@ coerce_cf <- function(cf_row, type) {
   cf_row
 }
 
+update_pkgs <- function(pkgs, tictoc, progress, safe_quiet) {
+  if (tictoc) {
+    pkgs <- c(pkgs, "tictoc")
+  }
+
+  if (progress) {
+    pkgs <- c(pkgs, "progress")
+  }
+
+  if (safe_quiet) {
+    pkgs <- c(pkgs, "purr")
+  }
+
+  pkgs
+}
+
+update_safe_quiet <- function(fun, safe_quiet) {
+  if (safe_quiet) {
+    fun <- purrr::safely(purrr::quietly(fun))
+  } else {
+    fun <- fun
+  }
+  fun
+}
+
+create_expression <- function(call, tictoc, progress) {
+  if (tictoc & progress) {
+    exp <- expression(
+      tictoc::tic(msg = paste("Call", i, sep = " ")),
+      mo <- eval(call),
+      tictoc::toc(),
+      pb$tick(),
+      mo
+    )
+  } else if (tictoc) {
+    exp <- expression(
+      tictoc::tic(msg = paste("Call", i, sep = " ")),
+      mo <- eval(call),
+      tictoc::toc(),
+      mo
+    )
+  } else if (progress) {
+    exp <- expression(
+      mo <- eval(call),
+      pb$tick(),
+      mo
+    )
+  } else {
+    exp <- expression(eval(call))
+  }
+  exp
+}
