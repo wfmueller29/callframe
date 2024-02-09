@@ -44,13 +44,9 @@ pmap_cf <- function(cf,
     row <- as.list(coerce_cf(row, type = type))
     call <- as.call(c(str2lang("fun"), row))
     exp <- create_expression(call, tictoc, progress)
-    f_call <- as.call(c(
-      str2lang("future::future"),
-      list(exp),
-      list(packages = pkgs),
-      list(seed = seed)
-    ))
-    mos[[i]] <- eval(f_call)
+    mos[[i]] <- future::future(eval(exp),
+      packages = pkgs, seed = seed, substitute = FALSE
+    )
   }
   mos <- lapply(mos, FUN = future::value)
   if (tictoc) tictoc::toc()
@@ -110,7 +106,7 @@ update_pkgs <- function(pkgs, tictoc, progress, safe_quiet) {
   }
 
   if (safe_quiet) {
-    pkgs <- c(pkgs, "purr")
+    pkgs <- c(pkgs, "purrr")
   }
 
   pkgs
