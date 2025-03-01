@@ -42,10 +42,19 @@ pmap_cf <- function(cf,
   for (i in seq_len(nrow(cf))) {
     row <- cf[i, ]
     row <- as.list(coerce_cf(row, type = type))
-    call <- as.call(c(str2lang("fun"), row))
-    exp <- create_expression(call, tictoc, progress)
-    mos[[i]] <- future::future(eval(exp),
-      packages = pkgs, seed = seed, substitute = FALSE
+    call <- as.call(c(as.symbol("fun"), row))
+    mos[[i]] <- future::future(
+      {
+        if (tictoc) tictoc::tic(msg = paste("Call", i, sep = " "))
+        mo <- eval(call)
+        if (tictoc) tictoc::toc()
+        if (progress) pb$tick()
+        message(paste0("\nPID = ", Sys.getpid()))
+        mo
+      },
+      packages = pkgs,
+      seed = seed # ,
+      # substitute = FALSE
     )
   }
   mos <- lapply(mos, FUN = future::value)
@@ -119,32 +128,4 @@ update_safe_quiet <- function(fun, safe_quiet) {
     fun <- fun
   }
   fun
-}
-
-create_expression <- function(call, tictoc, progress) {
-  if (tictoc & progress) {
-    exp <- expression(
-      tictoc::tic(msg = paste("Call", i, sep = " ")),
-      mo <- eval(call),
-      tictoc::toc(),
-      pb$tick(),
-      mo
-    )
-  } else if (tictoc) {
-    exp <- expression(
-      tictoc::tic(msg = paste("Call", i, sep = " ")),
-      mo <- eval(call),
-      tictoc::toc(),
-      mo
-    )
-  } else if (progress) {
-    exp <- expression(
-      mo <- eval(call),
-      pb$tick(),
-      mo
-    )
-  } else {
-    exp <- expression(eval(call))
-  }
-  exp
 }
