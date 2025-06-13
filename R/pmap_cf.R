@@ -55,7 +55,8 @@ pmap_cf <- function(cf,
       packages = pkgs,
       seed = seed,
       globals = c(
-        fun = fun, tictoc = tictoc, i = i, progress = progress, pb = pb
+        fun = fun, tictoc = tictoc, i = i, progress = progress, pb = pb,
+        call = call
       )
     )
   }
