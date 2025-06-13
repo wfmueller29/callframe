@@ -53,8 +53,10 @@ pmap_cf <- function(cf,
         mo
       },
       packages = pkgs,
-      seed = seed # ,
-      # substitute = FALSE
+      seed = seed,
+      globals = c(
+        fun = fun, tictoc = tictoc, i = i, progress = progress, pb = pb
+      )
     )
   }
   mos <- lapply(mos, FUN = future::value)
